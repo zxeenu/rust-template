@@ -1,0 +1,23 @@
+# Use the official Rust image based on Alpine as the base image
+FROM rust:alpine3.20 AS base-builder
+
+# Install dependencies
+RUN apk add --no-cache \
+    build-base \
+    musl-dev \
+    openssl-dev \
+    pkgconfig \
+    git \
+    curl \
+    ca-certificates \
+    && rustup target add x86_64-unknown-linux-musl
+
+
+# Set up the working directory and add the application source
+WORKDIR /app
+
+# Install additional development tools if needed
+RUN cargo install cargo-watch
+
+# Run the application in development mode
+CMD ["cargo", "watch", "--", "cargo", "run"]

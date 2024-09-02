@@ -1,0 +1,30 @@
+# Use the official Rust image based on Alpine as the base image
+FROM rust:alpine3.20 AS base-builder
+
+# Install dependencies
+RUN apk add --no-cache \
+    build-base \
+    musl-dev \
+    openssl-dev \
+    pkgconfig \
+    git \
+    curl \
+    ca-certificates \
+    && rustup target add x86_64-unknown-linux-musl
+
+
+# Create a new empty shell project
+RUN USER=root cargo new --bin app
+WORKDIR /app
+
+# Build the application in release mode
+RUN cargo build --release
+
+# Production stage
+FROM scratch as release
+
+# Copy the binary from the builder stage
+COPY --from=base-builder /app/target/release/app /usr/local/bin/app
+
+# Set the entrypoint to the binary
+ENTRYPOINT ["/usr/local/bin/app"]
